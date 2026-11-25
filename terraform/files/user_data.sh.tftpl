@@ -1,0 +1,22 @@
+#!/bin/bash
+set -euo pipefail
+mkdir -p /opt/lab
+cat > /opt/lab/server.py <<'PY'
+${server}
+PY
+cat > /etc/systemd/system/lab-web.service <<'UNIT'
+[Unit]
+Description=Troubleshooting lab web server
+After=network-online.target
+
+[Service]
+Environment=LAB_BUCKET=${bucket}
+Environment=LAB_REGION=${region}
+ExecStart=/usr/bin/python3 /opt/lab/server.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+systemctl daemon-reload
+systemctl enable --now lab-web
